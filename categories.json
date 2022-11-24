@@ -1,0 +1,34 @@
+[
+    {
+        "genre":"Thriller",
+        "img":"https://ak.picdn.net/shutterstock/videos/7952224/thumb/2.jpg"
+    },
+    {
+        "genre":"Romance",
+        "img":"https://images.pexels.com/photos/1378723/pexels-photo-1378723.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500"
+    },
+    {
+        "genre":"Self-help",
+        "img":"https://media1.popsugar-assets.com/files/thumbor/vA4mKOG34ZlweUey-7bGihAGwYk/fit-in/2048xorig/filters:format_auto-!!-:strip_icc-!!-/2017/01/12/892/n/1922441/a6b4738b5877e5ff508493.50725671_edit_img_image_42990979_1484248240/i/Self-Care-Books.jpg"
+    },
+    {
+        "genre":"Historical",
+        "img":"https://img.fonwall.ru/o/67/227530.jpg"
+    },
+    {
+        "genre":"Novel",
+        "img":"https://burst.shopifycdn.com/photos/fog-on-dark-waters-edge.jpg?width=1200&format=pjpg&exif=1&iptc=1"
+    },
+    {
+        "genre":"Psychological",
+        "img":"https://cdn.wccftech.com/wp-content/uploads/2020/08/martha-is-dead-closeupHD.jpg"
+    },
+    {
+        "genre":"Fantasy",
+        "img":"https://wallpapercave.com/wp/wp4664587.jpg"
+    },
+    {
+        "genre":"Romance",
+        "img":"https://images.pexels.com/photos/1378723/pexels-photo-1378723.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500"
+    }
+]
