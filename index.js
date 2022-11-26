@@ -189,7 +189,22 @@ async function run() {
 
     // buyers 
 
+    app.get("/buyers",verifyJWT,verifyAdmin, async (req, res) => {
 
+      const query = { role: "Buyer" }
+      const sellers = await usersCollection.find(query).toArray()
+
+      console.log(sellers)
+      res.send(sellers)
+    })
+
+    app.delete('/buyers/:id',verifyJWT,verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) }
+      const result = await usersCollection.deleteOne(query)
+      console.log(result)
+      res.send(result)
+    })
 
 
 
