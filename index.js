@@ -18,13 +18,14 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 function verifyJWT(req, res, next) {
 
   const authHeader = req.headers.authorization;
+  console.log(authHeader)
   if (!authHeader) {
     return res.status(401).send('unauthorized access');
   }
 
   const token = authHeader.split(' ')[1];
 
-  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+  jwt.verify(token, process.env.TOKEN, function (err, decoded) {
     if (err) {
       return res.status(403).send({ message: 'forbidden access' })
     }
@@ -40,6 +41,31 @@ async function run() {
     const bookCollection = client.db("bookRestore").collection("books")
     const categoriesCollection = client.db("bookRestore").collection("categories")
     const usersCollection = client.db("bookRestore").collection("users")
+    const bookingsCollection = client.db("bookRestore").collection("bookings")
+
+      // admin verify 
+    const verifyAdmin = async (req, res, next) => {
+      const decodedEmail = req.decoded.email;
+      const query = { email: decodedEmail };
+      const user = await usersCollection.findOne(query);
+
+      if (user?.role !== 'Admin') {
+          return res.status(403).send({ message: 'forbidden access' })
+      }
+      next();
+  }
+
+  // Seller verify
+    const verifySeller = async (req, res, next) => {
+      const decodedEmail = req.decoded.email;
+      const query = { email: decodedEmail };
+      const user = await usersCollection.findOne(query);
+
+      if (user?.role !== 'Seller') {
+          return res.status(403).send({ message: 'forbidden access' })
+      }
+      next();
+  }
 
 
     app.get("/jwt", async (req, res) => {
@@ -81,23 +107,23 @@ async function run() {
       const result = await categoriesCollection.find(query).project({ genre: 1 }).toArray();
       res.send(result);
 
-      
+
     })
 
-    app.get('/advertiseBooks',async(req,res)=>{
-      const query={advertise:true}
+    app.get('/advertiseBooks', async (req, res) => {
+      const query = { advertise: true }
       const books = await bookCollection.find(query).limit(10).toArray()
       res.send(books)
     })
 
-    app.post('/books', async (req, res) => {
+    app.post('/books',verifyJWT,verifySeller, async (req, res) => {
       const user = req.body
       const post = Date()
-      const result = await bookCollection.insertOne({...user,post :post})
+      const result = await bookCollection.insertOne({ ...user, post: post })
       console.log(result)
       res.send(result)
     })
-   
+
 
     // users
 
@@ -116,10 +142,75 @@ async function run() {
       console.log(user.role === "Seller")
       res.send(user.role === "Seller")
     })
+    app.get("/users/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email }
+      const user = await usersCollection.findOne(query)
+      console.log(user.role === "Admin")
+      res.send(user.role === "Admin")
+    })
+
+    // seller
+    app.get("/sellers",verifyJWT,verifyAdmin, async (req, res) => {
+
+      const query = { role: "Seller" }
+      const sellers = await usersCollection.find(query).toArray()
+
+      console.log(sellers)
+      res.send(sellers)
+    })
+
+    app.delete('/sellers/:id',verifyJWT,verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) }
+      const result = await usersCollection.deleteOne(query)
+      console.log(result)
+      res.send(result)
+    })
+
+
+    app.put('/sellers/:id',verifyJWT,verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id), role: "Seller" }
+
+      const seller = await usersCollection.findOne(query)
+      const email = seller.email;
+      const filter = { sellerEmail: email }
+      const updateDoc = {
+        $set: {
+          verify: true
+        },
+      };
+      const result = await bookCollection.updateOne(filter, updateDoc)
+      console.log(result)
+      res.send(result)
+    })
+
+
+    // buyers 
+
+    app.get("/buyers",verifyJWT,verifyAdmin, async (req, res) => {
+
+      const query = { role: "Buyer" }
+      const sellers = await usersCollection.find(query).toArray()
+
+      console.log(sellers)
+      res.send(sellers)
+    })
+
+    app.delete('/buyers/:id',verifyJWT,verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) }
+      const result = await usersCollection.deleteOne(query)
+      console.log(result)
+      res.send(result)
+    })
+
+
 
     // seller-books
 
-    app.get('/books/:email',async(req,res)=>{
+    app.get('/books/:email', async (req, res) => {
       const email = req.params.email;
       console.log(email)
       const query = { sellerEmail: email }
@@ -127,10 +218,18 @@ async function run() {
 
       res.send(books)
     })
+    app.get('/bookings/:email', async (req, res) => {
+      const email = req.params.email;
+      console.log(email)
+      const query = { sellerEmail: email }
+      const books = await bookingsCollection.find(query).toArray()
+
+      res.send(books)
+    })
 
     app.delete('/books/:id', async (req, res) => {
-      const id=req.params.id;
-      const query={_id:ObjectId(id)}
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) }
       const result = await bookCollection.deleteOne(query)
       console.log(result)
       res.send(result)
@@ -138,20 +237,31 @@ async function run() {
 
 
     app.put('/books/:id', async (req, res) => {
-      const id=req.params.id;
-      const query={_id:ObjectId(id)}
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) }
 
       const options = { upsert: true };
-    
+
       const updateDoc = {
         $set: {
-         advertise:true
+          advertise: true
         },
       };
-      const result = await bookCollection.updateOne(query,updateDoc,options)
+      const result = await bookCollection.updateOne(query, updateDoc, options)
       console.log(result)
       res.send(result)
     })
+
+
+    // booking
+
+    app.post("/bookings", async (req, res) => {
+      const booking = req.body
+      const result = await bookingsCollection.insertOne(booking)
+      console.log(result)
+      res.send(result)
+    })
+
   }
 
   finally {
