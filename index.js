@@ -169,6 +169,22 @@ async function run() {
     })
 
 
+    app.put('/sellers/:id',verifyJWT,verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id), role: "Seller" }
+
+      const seller = await usersCollection.findOne(query)
+      const email = seller.email;
+      const filter = { sellerEmail: email }
+      const updateDoc = {
+        $set: {
+          verify: true
+        },
+      };
+      const result = await bookCollection.updateOne(filter, updateDoc)
+      console.log(result)
+      res.send(result)
+    })
 
 
     // buyers 
