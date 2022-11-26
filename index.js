@@ -44,15 +44,7 @@ async function run() {
     const bookingsCollection = client.db("bookRestore").collection("bookings")
 
       // admin verify 
-    const verifyAdmin = async (req, res, next) => {
-      const decodedEmail = req.decoded.email;
-      const query = { email: decodedEmail };
-      const user = await usersCollection.findOne(query);
-
-      if (user?.role !== 'Admin') {
-          return res.status(403).send({ message: 'forbidden access' })
-      }
-      next();
+    
   }
 
   // Seller verify
