@@ -273,7 +273,7 @@ async function run() {
 
       res.send(books)
     })
-    app.get('/bookings/:email', async (req, res) => {
+    app.get('/bookings/:email',verifyJWT, async (req, res) => {
       const email = req.params.email;
       console.log(email)
       const query = { sellerEmail: email }
